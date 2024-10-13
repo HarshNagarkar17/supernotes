@@ -5,7 +5,11 @@ import { Search } from "lucide-react";
 import AddNote from "./add-note";
 import NoteCard from "./note-card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createNote, getNotes } from "@/app/(services)/_notes";
+import {
+  createNote,
+  deleteNote as deleteNoteById,
+  getNotes,
+} from "@/app/(services)/_notes";
 import ProfileBanner from "../profile-banner";
 import AuthSessionProvider from "../AuthSessionProvider";
 
@@ -23,6 +27,7 @@ const NoteOrganizer = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [newNote, setNewNote] = useState({ title: "", content: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingNoteId, setDeletingNoteId] = useState("");
 
   const queryClient = useQueryClient();
 
@@ -45,6 +50,25 @@ const NoteOrganizer = () => {
     },
   });
 
+  const deleteNoteMutation = useMutation({
+    mutationFn: (id: string) => deleteNoteById(id),
+    mutationKey: ["delete-note"],
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get-notes"] });
+    },
+    onError: () => {
+      console.log("failed to delete note");
+    },
+    onSettled: () => {
+      setDeletingNoteId("");
+    },
+  });
+
+  const deleteNote = (id: string) => {
+    setDeletingNoteId(id);
+    deleteNoteMutation.mutate(id);
+  };
+
   const addNewNote = () => {
     setIsSubmitting(true);
     addNewNoteMutation.mutate(newNote);
@@ -65,8 +89,15 @@ const NoteOrganizer = () => {
   }, [data?.notes, searchTerm]);
 
   const memoizedNotes = useMemo(() => {
-    return filteredNotes.map((note) => <NoteCard note={note} key={note.id} />);
-  }, [filteredNotes]);
+    return filteredNotes.map((note) => (
+      <NoteCard
+        note={note}
+        key={note.id}
+        deletingNoteId={deletingNoteId}
+        deleteNote={deleteNote}
+      />
+    ));
+  }, [filteredNotes, deleteNote]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900">

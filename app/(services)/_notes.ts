@@ -18,9 +18,8 @@ export const getNotes = async () => {
 };
 
 export const deleteNote = async (id: string) => {
-  const response = await fetch("/api/delete-note", {
-    method: "POST",
-    body: JSON.stringify({ id }),
+  const response = await fetch(`/api/delete-note/${id}`, {
+    method: "DELETE",
   });
 
   if (!response.ok) throw new Error("failed to delete task");

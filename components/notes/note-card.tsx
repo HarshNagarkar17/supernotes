@@ -2,12 +2,14 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Note } from "./note-organizer";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Loader, Trash2 } from "lucide-react";
 
 interface Props {
   note: Note;
+  deletingNoteId: string;
+  deleteNote: (id: string) => void;
 }
-const NoteCard = ({ note }: Props) => {
+const NoteCard = ({ note, deleteNote, deletingNoteId }: Props) => {
   return (
     <Card className="mb-4 bg-white dark:bg-gray-800 overflow-hidden">
       <CardHeader className="pb-2">
@@ -17,8 +19,16 @@ const NoteCard = ({ note }: Props) => {
             <Button size="sm" variant="ghost">
               <Edit className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="ghost">
-              <Trash2 className="h-4 w-4" />
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => deleteNote(note.id)}
+            >
+              {deletingNoteId === note.id ? (
+                <Loader className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </CardTitle>
