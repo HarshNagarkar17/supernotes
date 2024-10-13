@@ -1,10 +1,40 @@
 "use client";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Input } from "../ui/input";
 import { Search } from "lucide-react";
+import AddNote from "./add-note";
+import NoteCard from "./note-card";
 
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+}
+const notes: Note[] = [
+  { id: "1", title: "content", content: "content is king" },
+  { id: "2", title: "code", content: "write good code" },
+  { id: "3", title: "code", content: "write testable code" },
+  { id: "4", title: "code", content: "write clean code" },
+];
 const NoteOrganizer = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [newNote, setNewNote] = useState({ title: "", content: "" });
+
+  const handleSetNewNote = (name: string, value: string) => {
+    setNewNote((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const fileteredNotes = useMemo(() => {
+    return notes.filter(
+      (note) =>
+        note.title.includes(searchTerm) || note.content.includes(searchTerm)
+    );
+  }, [searchTerm]);
+
+  const memoizedNotes = useMemo(() => {
+    return fileteredNotes.map((note) => <NoteCard note={note} key={note.id} />);
+  }, [fileteredNotes]);
+
   return (
     <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 shadow-sm">
@@ -22,13 +52,17 @@ const NoteOrganizer = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            {/* <ProfileBanner /> */}
           </div>
         </div>
       </header>
 
       <main className="flex-1 overflow-auto p-4">
-        <div className="max-w-7xl mx-auto"></div>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center gap-3">
+            <AddNote handleSetNewNote={handleSetNewNote} newNote={newNote} />
+            {memoizedNotes}
+          </div>
+        </div>
       </main>
     </div>
   );
