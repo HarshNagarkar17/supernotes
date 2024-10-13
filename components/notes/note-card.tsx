@@ -23,6 +23,7 @@ const NoteCard = ({ note, deleteNote, deletingNoteId }: Props) => {
               size="sm"
               variant="ghost"
               onClick={() => deleteNote(note.id)}
+              disabled={deletingNoteId === note.id}
             >
               {deletingNoteId === note.id ? (
                 <Loader className="h-4 w-4 animate-spin" />

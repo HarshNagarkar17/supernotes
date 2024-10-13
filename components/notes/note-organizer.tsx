@@ -40,6 +40,7 @@ const NoteOrganizer = () => {
     mutationFn: (data: { title: string; content: string }) => createNote(data),
     mutationKey: ["create-note"],
     onSuccess() {
+      setNewNote({ title: "", content: "" });
       queryClient.invalidateQueries({ queryKey: ["get-notes"] });
     },
     onError(error) {
