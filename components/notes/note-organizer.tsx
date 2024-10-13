@@ -26,10 +26,7 @@ const NoteOrganizer = () => {
 
   const queryClient = useQueryClient();
 
-  const { isLoading, isError, data, isPending } = useQuery<
-    NotesResponse,
-    Error
-  >({
+  const { isLoading, isError, data } = useQuery<NotesResponse, Error>({
     queryFn: getNotes,
     queryKey: ["get-notes"],
   });
@@ -37,7 +34,7 @@ const NoteOrganizer = () => {
   const addNewNoteMutation = useMutation({
     mutationFn: (data: { title: string; content: string }) => createNote(data),
     mutationKey: ["create-note"],
-    onSuccess(data) {
+    onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["get-notes"] });
     },
     onError(error) {
