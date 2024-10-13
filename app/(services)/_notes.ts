@@ -1,7 +1,7 @@
 export const createNote = async (data: { title: string; content: string }) => {
   const response = await fetch("/api/create-note", {
     method: "POST",
-    body: JSON.stringify({ data }),
+    body: JSON.stringify({ title: data.title, content: data.content }),
   });
 
   if (!response.ok) throw new Error("failed to create note");

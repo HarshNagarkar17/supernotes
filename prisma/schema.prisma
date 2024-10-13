@@ -8,20 +8,24 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(cuid())
-  username String
-  email    String @unique
-  notes    Note[]
+  id        String   @id @default(cuid())
+  username  String
+  email     String   @unique
+  notes     Note[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([email])
 }
 
 model Note {
-  id      String @id @default(cuid())
-  title   String
-  content String
-  userId  String
-  user    User   @relation(fields: [userId], references: [id])
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
 }

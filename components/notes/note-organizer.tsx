@@ -4,8 +4,8 @@ import { Input } from "../ui/input";
 import { Search } from "lucide-react";
 import AddNote from "./add-note";
 import NoteCard from "./note-card";
-import { useQuery } from "@tanstack/react-query";
-import { getNotes } from "@/app/(services)/_notes";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createNote, getNotes } from "@/app/(services)/_notes";
 import ProfileBanner from "../profile-banner";
 import AuthSessionProvider from "../AuthSessionProvider";
 
@@ -14,37 +14,62 @@ export interface Note {
   title: string;
   content: string;
 }
-const notes: Note[] = [
-  { id: "1", title: "content", content: "content is king" },
-  { id: "2", title: "code", content: "write good code" },
-  { id: "3", title: "code", content: "write testable code" },
-  { id: "4", title: "code", content: "write clean code" },
-];
+
+interface NotesResponse {
+  notes: Note[];
+}
+
 const NoteOrganizer = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [newNote, setNewNote] = useState({ title: "", content: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { isLoading, isError, data } = useQuery({
+  const queryClient = useQueryClient();
+
+  const { isLoading, isError, data, isPending } = useQuery<
+    NotesResponse,
+    Error
+  >({
     queryFn: getNotes,
     queryKey: ["get-notes"],
   });
 
-  console.log({ data, isLoading, isError });
+  const addNewNoteMutation = useMutation({
+    mutationFn: (data: { title: string; content: string }) => createNote(data),
+    mutationKey: ["create-note"],
+    onSuccess(data) {
+      queryClient.invalidateQueries({ queryKey: ["get-notes"] });
+    },
+    onError(error) {
+      console.log("failed to add new note", error);
+    },
+    onSettled() {
+      setIsSubmitting(false);
+    },
+  });
+
+  const addNewNote = () => {
+    setIsSubmitting(true);
+    addNewNoteMutation.mutate(newNote);
+  };
 
   const handleSetNewNote = (name: string, value: string) => {
     setNewNote((prev) => ({ ...prev, [name]: value }));
   };
 
-  const fileteredNotes = useMemo(() => {
-    return notes.filter(
-      (note) =>
-        note.title.includes(searchTerm) || note.content.includes(searchTerm)
+  const filteredNotes = useMemo(() => {
+    return (
+      data?.notes?.filter(
+        (note) =>
+          note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          note.content.toLowerCase().includes(searchTerm.toLowerCase())
+      ) ?? []
     );
-  }, [searchTerm]);
+  }, [data?.notes, searchTerm]);
 
   const memoizedNotes = useMemo(() => {
-    return fileteredNotes.map((note) => <NoteCard note={note} key={note.id} />);
-  }, [fileteredNotes]);
+    return filteredNotes.map((note) => <NoteCard note={note} key={note.id} />);
+  }, [filteredNotes]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900">
@@ -73,8 +98,19 @@ const NoteOrganizer = () => {
       <main className="flex-1 overflow-auto p-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3">
-            <AddNote handleSetNewNote={handleSetNewNote} newNote={newNote} />
-            {memoizedNotes}
+            <AddNote
+              handleSetNewNote={handleSetNewNote}
+              newNote={newNote}
+              addNote={addNewNote}
+              isSubmitting={isSubmitting}
+            />
+            {isLoading ? (
+              <p>Loading notes...</p>
+            ) : isError ? (
+              <p>Error loading notes</p>
+            ) : (
+              memoizedNotes
+            )}
           </div>
         </div>
       </main>
