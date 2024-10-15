@@ -8,7 +8,6 @@ import {
   Search,
   Menu,
   MessageSquare,
-  Edit3,
   Send,
 } from "lucide-react";
 
@@ -122,6 +121,7 @@ export default function Component() {
   };
 
   const getFakeAIResponse = (userMessage: string): string => {
+    console.log({ userMessage });
     const responses = [
       "That's an interesting point about your note. Can you elaborate?",
       "I've analyzed your note and found some key insights. Would you like to hear them?",
